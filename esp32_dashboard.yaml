@@ -28,15 +28,14 @@ wifi:
     ssid: "Display Fallback Hotspot"
     password: "left out for reasons"
 
-captive_portal:
-    
+captive_portal:    
 
 font:
   - file: 'fonts/OpenSans-Medium.ttf'
     id: huge_font
     size: 120
     glyphs:
-      [':', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ]   
+      [':', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9','.']   
   - file: 'fonts/OpenSans-Medium.ttf'
     id: big_font
     size: 60   
@@ -60,7 +59,11 @@ font:
       '󰓣', #swim
       '󰠬', #karate
       '󰒸', #soccer
-      '󰝚' #music      
+      '󰝚', #music
+      '󰔍', #cinema
+      '󱁖', #party
+      '󰹄', #gift
+      '󰙽', #piano
       ] 
   - file: 'fonts/materialdesignicons-webfont.ttf'
     id: small_icon_font
@@ -81,15 +84,14 @@ font:
      '󰦑', #office-building
      '󰢒', #farm
      '󰯙', #triforce / nussecke
-     '󱛮', # Hund - durchgetrichen     
+     '󰀏', # account-multiple-outline     
      '󰸊', #drop-empty
      '󰖌', #drop-filled
      '󰻺', #flood
-     '󱕬', #submarine
      '󰔏', #thermometer
      '󰖎', #humidity
-     # '󰸗', # calendar
-     # '󰐅', # tree
+     '󰸗', # calendar
+     '󰐅', # tree
      ]
   - file: 'fonts/materialdesignicons-webfont.ttf'
     id: weather_font
@@ -108,7 +110,9 @@ font:
       "󰙿", # mdi-weather-snowy-rainy
       "󰖙", # mdi-weather-sunny
       "󰖞", # mdi-weather-windy-variant
-      "󰋖" # unknown      
+      "󰋖", # unknown      
+      '󰂣', # bike
+      '󰠬' #karate
       ]
 
 globals:
@@ -124,7 +128,10 @@ globals:
     type: int
     restore_value: no
     initial_value: '210'
-
+  - id: align_c1_extra
+    type: int
+    restore_value: no
+    initial_value: '280'
 
 text_sensor:
   - platform: homeassistant
@@ -137,7 +144,7 @@ text_sensor:
     internal: true 
   - platform: homeassistant
     id: device_tracker_tobi
-    entity_id: device_tracker.dn2103
+    entity_id: device_tracker.noTobi
     internal: true
   - platform: homeassistant
     id: device_tracker_nathan
@@ -145,7 +152,7 @@ text_sensor:
     internal: true
   - platform: homeassistant
     id: device_tracker_beni
-    entity_id: device_tracker.beni_smartphone
+    entity_id: device_tracker.CPH2709
     internal: true   
   - platform: homeassistant
     id: next_event_text
@@ -166,11 +173,31 @@ text_sensor:
   # Fenster Dachboden
   - platform: homeassistant
     id: fenstersensor_db_hinten
-    entity_id: binary_sensor.fenstersensor_db_hinten_offnet
+    entity_id: binary_sensor.fenstersensor_db_hinten_offnung
     internal: true
   - platform: homeassistant
     id: fenstersensor_db_vorne
-    entity_id: binary_sensor.fenstersensor_db_vorne_offnet
+    entity_id: binary_sensor.fenstersensor_db_vorne_offnung
+    internal: true
+  # Fenster nathan
+  - platform: homeassistant
+    id: fenstersensor_nathan
+    entity_id: binary_sensor.windownathan_offnet
+    internal: true
+  # Fenster Keller
+  - platform: homeassistant
+    id: fenstersensor_hobbykeller
+    entity_id: binary_sensor.windowkeller_offnet
+    internal: true
+  # Fenster Buero
+  - platform: homeassistant
+    id: fenstersensor_buero
+    entity_id: binary_sensor.dw_sensor_offnung
+    internal: true
+  # Adventskalender
+  - platform: homeassistant
+    id: heute_adventskalender
+    entity_id: input_text.HeuteAdventskalender
     internal: true
 
 sensor:
@@ -200,11 +227,11 @@ sensor:
     # Temp/Hum Keller
   - platform: homeassistant
     id: hobby_temp
-    entity_id: sensor.th_sonoff_hobbykeller_temperature
+    entity_id: sensor.th_sonoff_hobbykeller_temperatur
     internal: true   
   - platform: homeassistant
     id: hobby_hum
-    entity_id: sensor.th_sonoff_hobbykeller_humidity
+    entity_id: sensor.th_sonoff_hobbykeller_luftfeuchtigkeit
     internal: true   
   - platform: homeassistant
     id: wasch_temp
@@ -234,11 +261,11 @@ sensor:
     internal: true   
   - platform: homeassistant
     id: wohn_temp
-    entity_id: sensor.shellyth_temperature
+    entity_id: sensor.wozi_th_tz3000_bgsigers_ts0201_temperatur
     internal: true   
   - platform: homeassistant
     id: wohn_hum
-    entity_id: sensor.shellyth_humidity
+    entity_id: sensor.wozi_th_tz3000_bgsigers_ts0201_luftfeuchtigkeit
     internal: true   
 
     # Temp Hum OG
@@ -266,6 +293,15 @@ sensor:
     id: schlaf_hum
     entity_id: sensor.th_schlaf_ts0201_humidity
     internal: true 
+  - platform: homeassistant
+    id: buero_hum
+    entity_id: sensor.tz3210_ts0201_buero_luftfeuchtigkeit
+    internal: true   
+  - platform: homeassistant
+    id: buero_temp
+    entity_id: sensor.tz3210_ts0201_buero_temperatur
+    internal: true 
+
 
 # Temp DG
   - platform: homeassistant
@@ -304,7 +340,7 @@ display:
     reset_pin: 21
     dc_pin: 22
     model: 7.50inV2alt
-    update_interval: 60s
+    update_interval: 900s
     reset_duration: 2ms
     
     lambda: |  
@@ -366,40 +402,68 @@ display:
         }
         
         // Test icon
-        // it.print(190, 120, id(icon_font),TextAlign::CENTER_LEFT, "󱕬");
+        // it.print(190, 120, id(icon_font),TextAlign::CENTER_LEFT, "󰖌");
         
 
         // UG
-        it.print(id(align_c1_text), 200, id(status_font),TextAlign::CENTER_LEFT, "Hobbykeller:");
-        it.printf(id(align_c1_t), 200, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(hobby_temp).state);
-        it.printf(id(align_c1_h), 200, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(hobby_hum).state);
-        it.print(id(align_c1_text), 230, id(status_font),TextAlign::CENTER_LEFT, "Waschkeller:");
-        it.printf(id(align_c1_t), 230, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(wasch_temp).state);
-        it.printf(id(align_c1_h), 230, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(wasch_hum).state);
-        it.print(id(align_c1_text), 260, id(status_font),TextAlign::CENTER_LEFT, "Vorratskeller:");
-        it.printf(id(align_c1_t), 260, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(vorrat_temp).state);
-        it.printf(id(align_c1_h), 260, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(vorrat_hum).state);
+        it.print(id(align_c1_text), 170, id(status_font),TextAlign::CENTER_LEFT, "Hobbykeller:");
+        it.printf(id(align_c1_t), 170, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(hobby_temp).state);
+        it.printf(id(align_c1_h), 170, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(hobby_hum).state);
+        if (strcmp(id(fenstersensor_hobbykeller).state.c_str(), "on") == 0) {     
+            it.print(id(align_c1_extra), 170, id(small_icon_font),TextAlign::CENTER_LEFT, "󱇜");
+        } else  if (strcmp(id(fenstersensor_hobbykeller).state.c_str(), "off") == 0){
+            it.print(id(align_c1_extra), 170, id(small_icon_font),TextAlign::CENTER_LEFT, "󱇛");
+        } else {
+            it.print(id(align_c1_extra), 170, id(small_icon_font),TextAlign::CENTER_LEFT, "󰋖");
+        }
+        it.print(id(align_c1_text), 200, id(status_font),TextAlign::CENTER_LEFT, "Waschkeller:");
+        it.printf(id(align_c1_t), 200, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(wasch_temp).state);
+        it.printf(id(align_c1_h), 200, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(wasch_hum).state);
+        it.print(id(align_c1_text), 230, id(status_font),TextAlign::CENTER_LEFT, "Vorratskeller:");
+        it.printf(id(align_c1_t), 230, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(vorrat_temp).state);
+        it.printf(id(align_c1_h), 230, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(vorrat_hum).state);
+
+
 
         // it.line(1, 280, 170, 280);
 
         // EG
-        it.print(id(align_c1_text), 300, id(status_font),TextAlign::CENTER_LEFT, "Wohnzimmer:");
-        it.printf(id(align_c1_t), 300, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(wohn_temp).state);
-        it.printf(id(align_c1_h), 300, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(wohn_hum).state);
-        it.print(id(align_c1_text), 330, id(status_font),TextAlign::CENTER_LEFT, "Küche:");
-        it.printf(id(align_c1_t), 330, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(kueche_temp).state);
-        it.printf(id(align_c1_h), 330, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(kueche_hum).state);
+        it.print(id(align_c1_text), 270, id(status_font),TextAlign::CENTER_LEFT, "Wohnzimmer:");
+        it.printf(id(align_c1_t), 270, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(wohn_temp).state);
+        it.printf(id(align_c1_h), 270, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(wohn_hum).state);
+        it.print(id(align_c1_text), 300, id(status_font),TextAlign::CENTER_LEFT, "Küche:");
+        it.printf(id(align_c1_t), 300, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(kueche_temp).state);
+        it.printf(id(align_c1_h), 300, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(kueche_hum).state);
 
         // OG
-        it.print(id(align_c1_text), 370, id(status_font),TextAlign::CENTER_LEFT, "Nathan:");
-        it.printf(id(align_c1_t), 370, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(nathan_temp).state);
-        it.printf(id(align_c1_h), 370, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(nathan_hum).state);
-        it.print(id(align_c1_text), 400, id(status_font),TextAlign::CENTER_LEFT, "Bad:");
-        it.printf(id(align_c1_t), 400, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(bad_temp).state);
-        it.printf(id(align_c1_h), 400, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(bad_hum).state);
-        it.print(id(align_c1_text), 430, id(status_font),TextAlign::CENTER_LEFT, "Schlafzimmer:");
-        it.printf(id(align_c1_t), 430, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(schlaf_temp).state);
-        it.printf(id(align_c1_h), 430, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(schlaf_hum).state);
+        it.print(id(align_c1_text), 340, id(status_font),TextAlign::CENTER_LEFT, "Nathan:");
+        it.printf(id(align_c1_t), 340, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(nathan_temp).state);
+        it.printf(id(align_c1_h), 340, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(nathan_hum).state);
+        if (strcmp(id(fenstersensor_nathan).state.c_str(), "on") == 0) {     
+            it.print(id(align_c1_extra), 340, id(small_icon_font),TextAlign::CENTER_LEFT, "󱇜");
+        } else  if (strcmp(id(fenstersensor_nathan).state.c_str(), "off") == 0){
+            it.print(id(align_c1_extra), 340, id(small_icon_font),TextAlign::CENTER_LEFT, "󱇛");
+        } else {
+            it.print(id(align_c1_extra), 340, id(small_icon_font),TextAlign::CENTER_LEFT, "󰋖");
+        }
+        it.print(id(align_c1_text), 370, id(status_font),TextAlign::CENTER_LEFT, "Bad:");
+        it.printf(id(align_c1_t), 370, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(bad_temp).state);
+        it.printf(id(align_c1_h), 370, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(bad_hum).state);
+        it.print(id(align_c1_text), 400, id(status_font),TextAlign::CENTER_LEFT, "Schlafzimmer:");
+        it.printf(id(align_c1_t), 400, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(schlaf_temp).state);
+        it.printf(id(align_c1_h), 400, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(schlaf_hum).state);
+
+        it.print(id(align_c1_text), 430, id(status_font),TextAlign::CENTER_LEFT, "Büro:");
+        it.printf(id(align_c1_t), 430, id(status_font),TextAlign::CENTER_LEFT, "%.1f °C", id(buero_temp).state);
+        it.printf(id(align_c1_h), 430, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(buero_hum).state);
+        if (strcmp(id(fenstersensor_buero).state.c_str(), "on") == 0) {     
+            it.print(id(align_c1_extra), 430, id(small_icon_font),TextAlign::CENTER_LEFT, "󱇜");
+        } else  if (strcmp(id(fenstersensor_buero).state.c_str(), "off") == 0){
+            it.print(id(align_c1_extra), 430, id(small_icon_font),TextAlign::CENTER_LEFT, "󱇛");
+        } else {
+            it.print(id(align_c1_extra), 430, id(small_icon_font),TextAlign::CENTER_LEFT, "󰋖");
+        }
+
 
         //DG
         it.print(id(align_c1_text), 470, id(status_font),TextAlign::CENTER_LEFT, "Dachboden:");
@@ -419,13 +483,17 @@ display:
         } else {
             it.print(235, 470, id(small_icon_font),TextAlign::CENTER_LEFT, "󰋖");
         }
-        // it.printf(230, 470, id(status_font),TextAlign::CENTER_LEFT, "%.1f %%", id(schlaf_hum).state);
+
 
         //Time
-        it.strftime(450, 130, id(huge_font),TextAlign::BOTTOM_LEFT, "%H:%M", id(hass_time).now());
-        it.strftime(450, 140, id(status_font),TextAlign::BOTTOM_LEFT, "%A, %d.%m.%y, KW %W", id(hass_time).now());
+        // it.strftime(450, 130, id(huge_font),TextAlign::BOTTOM_LEFT, "%H:%M", id(hass_time).now());
+        // it.strftime(450, 140, id(status_font),TextAlign::BOTTOM_LEFT, "%A, %d.%m.%y, KW %W", id(hass_time).now());
+        // Date only
+        it.strftime(450, 130, id(huge_font), TextAlign::BOTTOM_LEFT, "%d.%m.", id(hass_time).now());
+        it.strftime(450, 140, id(status_font), TextAlign::BOTTOM_LEFT, "%A, KW %W", id(hass_time).now());
         it.line(450, 138, 830, 138);
-      
+
+
         //Nächster Termin
         if (id(next_event_allday).has_state() && strcmp(id(next_event_allday).state.c_str(), "on") == 0) {     
             it.printf(450, 170, id(status_font),TextAlign::BOTTOM_LEFT,"%s", id(next_event_start_dateonly).state.c_str());               
@@ -450,7 +518,7 @@ display:
         } else if(strcmp(id(device_tracker_nathan).state.c_str(), "Ahaus") == 0) {
           it.print(nathanLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󰯙");
         } else if(strcmp(id(device_tracker_nathan).state.c_str(), "Ramona_Bene") == 0) {
-          it.print(nathanLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󱛮");
+          it.print(nathanLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󰀏");
         } else {
           it.print(nathanLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󱄶");
         }
@@ -470,7 +538,7 @@ display:
         } else if(strcmp(id(device_tracker_beni).state.c_str(), "Ahaus") == 0) {
           it.print(beniLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󰯙");
         } else if(strcmp(id(device_tracker_beni).state.c_str(), "Ramona_Bene") == 0) {
-          it.print(beniLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󱛮");
+          it.print(beniLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󰀏");
         } else {
           it.print(beniLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󱄶");
         }
@@ -490,12 +558,22 @@ display:
         } else if(strcmp(id(device_tracker_tobi).state.c_str(), "Ahaus") == 0) {
           it.print(tobiLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󰯙");
         } else if(strcmp(id(device_tracker_tobi).state.c_str(), "Ramona_Bene") == 0) {
-          it.print(tobiLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󱛮");
+          it.print(tobiLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󰀏");
         } else {
           it.print(tobiLeft, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󱄶");
         }
 
-        // Nathans Tagesvorschau
+        // Adventskalender
+       // if(strcmp(id(heute_adventskalender).state.c_str(), "Nathan") == 0) {
+         // it.print(490, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󰸗");
+       // } else if(strcmp(id(heute_adventskalender).state.c_str(), "Mama") == 0) {
+         // it.print(580, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󰸗");
+       // } else if(strcmp(id(heute_adventskalender).state.c_str(), "Papa") == 0) {
+        //  it.print(670, positionValueTop, id(icon_font), TextAlign::BOTTOM_LEFT, "󰸗");
+       // }       
+
+
+        // Icons für die Tagesvorschau
 
         int iconLeft = 540;
         int iconTop = 480;
@@ -503,17 +581,29 @@ display:
         if (id(current_day).state == std::stoi(id(next_event_start).state.substr(0, 2))) {
           if (id(next_event_text).state.find("Schwimm") != std::string::npos) {
             it.print(iconLeft, iconTop, id(huge_icon_font), TextAlign::BOTTOM_LEFT, "󰓣"); // swim
-          } else if (id(next_event_text).state.find("Musikschule") != std::string::npos) {
+          } else if (id(next_event_text).state.find("usik") != std::string::npos) {
             it.print(iconLeft, iconTop, id(huge_icon_font), TextAlign::BOTTOM_LEFT, "󰝚"); // music
-          } else if (id(next_event_text).state.find("Fußball") != std::string::npos) {
+          } else if (id(next_event_text).state.find("ußball") != std::string::npos) {
             it.print(iconLeft, iconTop, id(huge_icon_font), TextAlign::BOTTOM_LEFT, "󰒸"); // soccer       
-          } else if (id(next_event_text).state.find("WingTsun") != std::string::npos) {
-            it.print(iconLeft, iconTop, id(huge_icon_font), TextAlign::BOTTOM_LEFT, "󰠬"); // karate      
-          }
+          } else if (id(next_event_text).state.find("Kino") != std::string::npos) {
+            it.print(iconLeft, iconTop, id(huge_icon_font), TextAlign::BOTTOM_LEFT, "󰔍"); // cinema               
+          } else if (id(next_event_text).state.find("Klavier") != std::string::npos) {
+            it.print(iconLeft, iconTop, id(huge_icon_font), TextAlign::BOTTOM_LEFT, "󰙽"); // Klavier      
+          } else if (id(next_event_text).state.find("Fastelovend") != std::string::npos || id(next_event_text).state.find("Party") != std::string::npos) {
+            it.print(iconLeft, iconTop, id(huge_icon_font), TextAlign::BOTTOM_LEFT, "󱁖"); // party
+          } else if (id(next_event_text).state.find("Rad") != std::string::npos) {
+            it.print(iconLeft, iconTop, id(weather_font), TextAlign::BOTTOM_LEFT, "󰂣"); // bike
+          } else if (id(next_event_text).state.find("Goshin") != std::string::npos) {
+            it.print(iconLeft, iconTop, id(weather_font), TextAlign::BOTTOM_LEFT, "󰠬"); // karate
+          } else if (id(next_event_text).state.find("Nathan Geburtstag") != std::string::npos || id(next_event_text).state.find("Geburtstag Mama") != std::string::npos) {
+            it.print(iconLeft, iconTop, id(huge_icon_font), TextAlign::BOTTOM_LEFT, "󰹄"); // gift    
+          } 
+          
         }
 
-        // Version
-        it.print(650, 460, id(status_font), "v29.21.42");
+        // Version and last update time        
+        it.strftime(640, 485, id(status_font),TextAlign::BOTTOM_LEFT, "%H:%M", id(hass_time).now());
+        it.print(690, 460, id(status_font), "(v21.13.49)");
       } else {
         it.print(650, 460, id(status_font), "sleeping until 6");
       }
