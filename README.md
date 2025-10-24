@@ -18,7 +18,7 @@ The drop changes its appearance depending on the amount of rain on the current d
 
 ### Variables for positioning
 
-I recently discovered that it is possible to use variables to position elements, thus making it easier to move things to other places on the screen.
+I recently discovered that it is possible to use variables to position elements, thus making it easier to move things to other places on the screen. I will replae all hard coded numbers in the future.
 
 ## Resources
 
